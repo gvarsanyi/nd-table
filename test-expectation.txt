@@ -152,3 +152,67 @@ ghi jkl mno pqr"	1
     </tr>
   </tbody>
 </table>
+
+
+[
+  [
+    null,
+    "Column A",
+    "Column B"
+  ],
+  [
+    null,
+    "abc def\nghi jkl mno pqr",
+    1
+  ],
+  [
+    "Row Head",
+    "stu",
+    2
+  ],
+  [
+    "Another Row Head",
+    "vwx",
+    3
+  ],
+  [
+    null,
+    "yz",
+    4
+  ]
+]
+
+[[null,"Column A","Column B"],[null,"abc def\nghi jkl mno pqr",1],["Row Head","stu",2],["Another Row Head","vwx",3],[null,"yz",4]]
+
+                   ┌─────────────────┬──────────┐
+                   │ Column A        │ Column B │
+┌──────────────────┼─────────────────┼──────────┤
+│                  │ abc def         │        1 │
+│                  │ ghi jkl mno pqr │          │
+│                  ├─────────────────┤          │
+│         Row Head │ stu             │        2 │
+│ Another Row Head │ vwx             │        3 │
+│                  │ yz              │        4 │
+└──────────────────┴─────────────────┴──────────┘
+
+
+           ┌────────────────────────────────────────────────┐
+           │                   Row Head Another Row Head    │
+┌──────────┼─────────────────┬──────────────────────────────┤
+│ Column A │ abc def         │ stu      vwx              yz │
+│          │ ghi jkl mno pqr │                              │
+├──────────┼─────────────────┴──────────────────────────────┤
+│ Column B │ 1                 2        3                4  │
+└──────────┴────────────────────────────────────────────────┘
+
+
+                   ┌─────────────────┬──────────┐
+                   │ Column A        │ Column B │
+┌──────────────────┼─────────────────┼──────────┤
+│                  │ abc def         │        1 │
+│                  │ ghi jkl mno pqr │          │
+│                  ├─────────────────┤          │
+│         Row Head │ stu             │        2 │
+│ Another Row Head │ vwx             │        3 │
+│                  │ yz              │        4 │
+└──────────────────┴─────────────────┴──────────┘

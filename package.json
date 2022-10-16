@@ -1,7 +1,7 @@
 {
   "name": "nd-table",
-  "version": "0.9.0",
-  "description": "Table builder for console/terminal (ascii, utf8, ansi), MarkDown (md), HTML, CSV, TSV, and custom",
+  "version": "1.0.2",
+  "description": "Table builder for console/terminal (ASCII, UTF, ANSI), MarkDown (MD), HTML, CSV, TSV, and custom",
   "main": "bin/table.class.js",
   "scripts": {
     "build": "rm -rf bin && tsc",
