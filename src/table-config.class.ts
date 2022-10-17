@@ -8,6 +8,8 @@ import { RenderConfig } from './config/render-config.type';
 export class TableConfig {
   protected readonly _cells = new Cells();
 
+  readonly preferences = this._cells.configs.preferences;
+
   /**
    * Create TableConfig instance
    */

@@ -9,6 +9,7 @@ type TLBRSeparator = [TRBL, number];
 export class TableRenderBorderData {
   /**
    * border grid and content logical description (sep = TLBRSeparator, i.e [TRBL, multiplier])
+   * edge  pad  content  pad  edge  eol
    * [sep, sep,   sep,   sep, sep, enter]
    * [sep, sep, line[i], sep, sep, enter] x lines.length
    * [sep, sep,   sep,   sep, sep, enter]

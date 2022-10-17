@@ -1,13 +1,13 @@
 import { CellValue } from '../cell/cell-value.type';
 import { TableSnapshot } from '../table-snapshot.class';
-import { CONFIG_ALIGN, CONFIG_COLORS, CONFIG_VALIGN } from './config.class';
+import { Align, Color, VAlign } from './config.class';
 
 /**
  * Config for cell or bulk config suggestion for column, row, or table (will trickle down, unless overridden)
  */
 export interface ConfigValue {
   /** horizontal alignment of cell content */
-  align?: (typeof CONFIG_ALIGN)[number];
+  align?: Align;
 
   /** style: bold cell content */
   bold?: boolean;
@@ -25,7 +25,7 @@ export interface ConfigValue {
   borderTop?: boolean;
 
   /** style: cell content color */
-  color?: (typeof CONFIG_COLORS)[number];
+  color?: Color;
 
   /** fix cell content height (in line count) */
   height?: number;
@@ -54,7 +54,7 @@ export interface ConfigValue {
   renderer?: (value: CellValue, x: number, y: number, config: ConfigValue, table: TableSnapshot) => string;
 
   /** vertical alignment of multiline cell content */
-  valign?: (typeof CONFIG_VALIGN)[number];
+  valign?: VAlign;
 
   /** fixed cell content width (in character count) */
   width?: number;

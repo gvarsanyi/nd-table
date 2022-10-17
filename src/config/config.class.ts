@@ -1,14 +1,18 @@
+import { defaultPreferences } from '../default-preferences.const';
 import { ConfigValue } from './config-value.type';
 import { Configs } from './configs.class';
 import { RenderConfig } from './render-config.type';
 
-export const CONFIG_ALIGN = ['left', 'center', 'right'] as const;
-export const CONFIG_BORDERS = ['borderBottom', 'borderLeft', 'borderRight', 'borderTop'] as const;
-export const CONFIG_COLORS = ['black', 'blue', 'cyan', 'default', 'green', 'magenta', 'red', 'white', 'yellow'] as const;
-export const CONFIG_VALIGN = ['top', 'middle', 'bottom'] as const;
-export const CONFIG_SIZES = ['width', 'height', 'maxWidth', 'maxHeight'] as const;
+const CONFIG_ALIGN = ['center', 'left', 'right'] as const;
+const CONFIG_BORDERS = ['borderBottom', 'borderLeft', 'borderRight', 'borderTop'] as const;
+const CONFIG_COLORS = ['black', 'blue', 'cyan', 'default', 'green', 'magenta', 'red', 'white', 'yellow'] as const;
+const CONFIG_VALIGN = ['bottom', 'middle', 'top'] as const;
+const CONFIG_SIZES = ['height', 'maxHeight', 'maxWidth', 'width'] as const;
 
+export type Align = (typeof CONFIG_ALIGN)[number]
 export type BorderProperty = (typeof CONFIG_BORDERS)[number];
+export type Color = (typeof CONFIG_COLORS)[number]
+export type VAlign = (typeof CONFIG_VALIGN)[number]
 
 const CONFIG_BORDER_FLIP_PAIRS: { [key in BorderProperty]: BorderProperty } = {
   borderBottom: 'borderRight',
@@ -26,6 +30,16 @@ const CONFIG_BORDER_REFS: { [key in BorderProperty]: ['x' | 'y', boolean, 'colum
 };
 
 export class Config {
+  static sanitizeAlign(input: Align, fallback: Align = 'left'): Align {
+    const lc = String(input).toLowerCase() as Align;
+    return CONFIG_ALIGN.includes(lc) ? lc : fallback;
+  }
+
+  static sanitizeVAlign(input: VAlign, fallback: VAlign = 'top'): VAlign {
+    const lc = String(input).toLowerCase() as VAlign;
+    return CONFIG_VALIGN.includes(lc) ? lc : fallback;
+  }
+
   constructor(protected readonly parent: Configs, public x: number, public y: number, protected _value: ConfigValue) {}
 
   get renderConfig(): RenderConfig {
@@ -44,17 +58,28 @@ export class Config {
 
   /** read and add defaults */
   get value(): ConfigValue {
+    const preferences = this.parent.preferences;
     const defaults: ConfigValue = {};
     if (this.x == null && this.y == null) { // table
-      defaults.borderTop = defaults.borderRight = defaults.borderLeft = defaults.borderBottom = true;
+      defaults.borderTop = defaults.borderRight = defaults.borderLeft = defaults.borderBottom = !!preferences.tableBorders;
+      defaults.valign = Config.sanitizeVAlign(preferences.valign, defaultPreferences.valign);
     } else if (this.x == null) { // row
       if (this.y === -1) { // header
-        defaults.bold = defaults.borderBottom = true;
+        defaults.align = Config.sanitizeAlign(preferences.columnHeaderAlign, defaultPreferences.columnHeaderAlign);
+        defaults.bold = !!preferences.boldHeaders;
+        defaults.borderBottom = !!preferences.headerBorders;
+        defaults.valign = Config.sanitizeVAlign(preferences.columnHeaderVAlign, defaultPreferences.columnHeaderVAlign);
+      } else if (this.y > 0) {
+        defaults.borderTop = !!preferences.horizontalBorders;
       }
     } else if (this.y == null) { // column
       if (this.x === -1) { // header
-        defaults.bold = defaults.borderRight = true;
-        defaults.align = 'right';
+        defaults.align = Config.sanitizeAlign(preferences.rowHeaderAlign, defaultPreferences.rowHeaderAlign);
+        defaults.bold = !!preferences.boldHeaders;
+        defaults.borderRight = !!preferences.headerBorders;
+        defaults.valign = Config.sanitizeVAlign(preferences.rowHeaderVAlign, defaultPreferences.rowHeaderVAlign);
+      } else if (this.x > 0) {
+        defaults.borderLeft = !!preferences.verticalBorders;
       }
     } else if (this.x === -1 && this.y === -1) { // no top/left borders for -1,-1 by default
       defaults.borderLeft = false;

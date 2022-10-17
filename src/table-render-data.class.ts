@@ -1,4 +1,7 @@
 import { Cell } from './cell/cell.class';
+import { Config } from './config/config.class';
+import { defaultPreferences } from './default-preferences.const';
+import { TablePreferences } from './table-preferences.type';
 import { TableRenderBorderData } from './table-render-border-data.class';
 import { TableSnapshot } from './table-snapshot.class';
 
@@ -27,11 +30,10 @@ export class TableRenderData extends TableSnapshot {
    * Instantiate render data
    * @param snapshot Table data snapshot
    */
-  constructor(snapshot: TableSnapshot) {
+  constructor(snapshot: TableSnapshot, preferences: TablePreferences) {
     super(snapshot);
     const {
-      cellConfig, cellValue, cellValueRendered, cellValueRenderedMultiline, columnConfig,
-      columnWidth, columns, rowHeight, rows, startX, startY, tableConfig
+      cellConfig, cellValue, cellValueRendered, cellValueRenderedMultiline, columnWidth, columns, rowHeight, rows, startX, startY
     } = this;
     for (let x = startX; x < columns; x++) {
       cellValueRendered[x] = [];
@@ -40,6 +42,13 @@ export class TableRenderData extends TableSnapshot {
         const renderConfig = cellConfig[x][y];
         const rendererFn = (renderConfig.renderer || Cell.defaultRenderer);
         const rendered = cellValueRendered[x][y] = rendererFn(cellValue[x][y], x, y, renderConfig, snapshot);
+        if (!renderConfig.align) {
+          if (x >= 0 && y >= 0 && preferences.numberAlign && rendered.match(numberishRx)) {
+            renderConfig.align = Config.sanitizeAlign(preferences.numberAlign);
+          } else {
+            renderConfig.align = Config.sanitizeAlign(preferences.align, defaultPreferences.align);
+          }
+        }
         const maxHeight = Math.min(renderConfig.maxHeight || 1000, renderConfig.height || 1000);
         let renderedLines = rendered.split('\n');
         if (renderedLines.length > maxHeight) {
@@ -54,24 +63,6 @@ export class TableRenderData extends TableSnapshot {
           columnWidth[x] = Math.max(columnWidth[x] || 0, len);
           return line.substring(0, len);
         });
-      }
-    }
-    // automatic column align to right where majority of values is number
-    if (!tableConfig.align) {
-      for (let x = 0; x < columns; x++) {
-        if (!columnConfig[x].align) {
-          let count = 0;
-          for (let y = 0; y < rows; y++) {
-            if (cellValueRendered[x][y].match(numberishRx)) {
-              count++;
-            }
-          }
-          if (count > rows / 2) {
-            for (let y = 0; y < rows; y++) {
-              cellConfig[x][y].align = cellConfig[x][y].align || 'right';
-            }
-          }
-        }
       }
     }
     // render vertical & horizontal alignment in cellValueRenderedMultiline

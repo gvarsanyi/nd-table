@@ -3,11 +3,20 @@ const { execSync } = require('child_process');
 const { readFileSync, writeFileSync } = require('fs');
 const { Table } = require('./bin/table.class.js');
 
-const table = new Table('Column A', 'Column B'); // initialize table with optional column headers
-table.addRow('abc def\nghi jkl mno pqr', 1); // add a row
-table.addRowWithHead('Row Head', 'stu', 2); // add a row with row header
-table.addRowWithHead('Another Row Head', { value: 'vwx', bold: true, color: 'red' }, 3); // add another row with row header
-table.addRow('yz', { value: 4, link: 'https://osnews.com/' }); // add a last row without headers
+const table = new Table('Welcome', 'To', 'The Table!')
+    .setOutputFormat('utf8', { flavor: 'rounded' })
+    .addRowWithHead('features',
+        { value: 'ANSI colors', color: 'magenta' },
+        { value: 'ANSI bold', bold: true },
+        { value: 'alignment', align: 'right' })
+    .addRowWithHead('vertical',
+        'auto-aligns numbers',
+        { value: 'has borders', borderTop: true, borderRight: true, borderLeft: true, borderBottom: true },
+        { value: 'HTML/MD links', link: 'https://github.com/gvarsanyi/nd-table' })
+    .addRowWithHead('headers',
+        1234,
+        { value: 'multiline\ncontents with\nalignment', align: 'center' },
+        { value: 'vertical align', valign: 'bottom' });
 
 const variants = [
   table.toString(),
@@ -42,3 +51,5 @@ try {
   }
   process.exit(1);
 }
+
+console.log(variants[3]);

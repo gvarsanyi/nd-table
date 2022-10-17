@@ -1,9 +1,14 @@
 import { Cells } from '../cell/cells.class';
 import { Container2D } from '../container-2d.class';
+import { defaultPreferences } from '../default-preferences.const';
+import { TablePreferences } from '../table-preferences.type';
+import { Table } from '../table.class';
 import { ConfigValue } from './config-value.type';
 import { Config } from './config.class';
 
 export class Configs extends Container2D<ConfigValue, Config, Configs> {
+  readonly preferences: TablePreferences = Object.assign(defaultPreferences, Table.preferences);
+
   readonly table = new Config(this, undefined!, undefined!, {});
 
   protected _columns: Config[] = [];

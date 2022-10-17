@@ -13,7 +13,7 @@ export class TableSnapshot {
   /** copy of original column config on (x) coordinate */
   readonly columnConfig!: ConfigValue[];
 
-  /** column header values */
+  /** column header values (or undefined for no headers) */
   readonly columnHeaders?: CellValue[];
 
   /** number of columns (excluding header) */
@@ -22,7 +22,7 @@ export class TableSnapshot {
   /** copy of original row config on (y) coordinate */
   readonly rowConfig!: ConfigValue[];
 
-  /** row header values */
+  /** row header values (or undefined for no headers) */
   readonly rowHeaders?: CellValue[];
 
   /** row count (excluding header) */

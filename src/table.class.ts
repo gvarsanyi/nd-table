@@ -1,17 +1,36 @@
 import { CellValue } from './cell/cell-value.type';
+import { defaultPreferences } from './default-preferences.const';
+import { outputFormatSane } from './output-formatter/output-format-sane';
 import { outputFormatterCSV } from './output-formatter/output-formatter-csv';
 import { outputFormatterHTML } from './output-formatter/output-formatter-html';
 import { outputFormatterJSON } from './output-formatter/output-formatter-json';
 import { outputFormatterMarkdown } from './output-formatter/output-formatter-markdown';
 import { outputFormatterUTF8 } from './output-formatter/output-formatter-utf8';
-import { outputFormatters } from './output-formatters.const';
+import { OutputFormat, OutputFormatters } from './output-formatter/output-formatter.type';
+import { outputFormatters } from './output-formatter/output-formatters.const';
 import { TableBuilder } from './table-builder.class';
+import { TablePreferences } from './table-preferences.type';
 import { TableRenderData } from './table-render-data.class';
 
 /**
  * Logical Table
  */
 export class Table extends TableBuilder {
+  static preferences: TablePreferences = Object.assign({}, defaultPreferences);
+
+  protected static _outputFormat?: [OutputFormat, Parameters<OutputFormatters[OutputFormat]>[1]];
+
+  /**
+   * Sets default output format and options for all table instances that don't have their own defaults
+   * @param format ascii csv html json markdown tsv utf8
+   * @param options output config (speicific to the chosen format)
+   * @returns the Table class
+   */
+  static setOutputFormat<T extends OutputFormat>(format: T, options: Parameters<OutputFormatters[T]>[1] = {}): typeof Table {
+    Table._outputFormat = [outputFormatSane(format), options];
+    return Table;
+  }
+
   /**
    * Turn 2-dimensinal data array to Table
    * @param data 2-dimensional array of values
@@ -28,7 +47,7 @@ export class Table extends TableBuilder {
     const pushY = firstRowIsHead ? 1 : 0;
     for (let y = 0 - pushY; y < data.length - pushY; y++) {
       const row = data[y + pushY];
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(row)) {
         throw new Error('Provided data row is not an array at index ' + y);
       }
       for (let x = 0 - pushX; x < row.length - pushX; x++) {
@@ -36,6 +55,19 @@ export class Table extends TableBuilder {
       }
     }
     return table;
+  }
+
+  protected _outputFormat?: [OutputFormat, Parameters<OutputFormatters[OutputFormat]>[1]] = Table._outputFormat;
+
+  /**
+   * Sets default output format and options for the Table instance
+   * @param format ascii csv html json markdown tsv utf8
+   * @param options output config (speicific to the chosen format)
+   * @returns this Table
+   */
+  setOutputFormat<T extends OutputFormat>(format: T, options: Parameters<OutputFormatters[T]>[1] = {}): this {
+    this._outputFormat = [outputFormatSane(format), options];
+    return this;
   }
 
   /**
@@ -89,18 +121,25 @@ export class Table extends TableBuilder {
    * @returns render data snapshot
    */
   toRenderData(): TableRenderData {
-    return new TableRenderData(this.getSnapshot());
+    return new TableRenderData(this.getSnapshot(), this._cells.configs.preferences);
   }
 
   /**
    * Created formatted table output string
-   * @param format output mode
-   * @param options output config
+   * @param format output mode (defaults to what was set by setOutputFormat() or 'utf8')
+   * @param options output config (defaults to what was set by setOutputFormat())
    * @returns Table string
    */
-  toString<T extends keyof typeof outputFormatters>(format?: T, options: Parameters<(typeof outputFormatters)[T]>[1] = {}): string {
-    options = (format && typeof format === 'object' ? format : options);
-    format = (outputFormatters[format!] ? format : 'utf8' as T)!;
+  toString<T extends OutputFormat>(format?: T, options: Parameters<OutputFormatters[T]>[1] = {}): string {
+    const defaultFormatAndOptions = (this._outputFormat || Table._outputFormat || ['utf8', {}]) as [T, Parameters<OutputFormatters[T]>[1]];
+    if (format && typeof format === 'object') {
+      options = format;
+      format = defaultFormatAndOptions[0];
+    } else if (!format) {
+      [format, options] = defaultFormatAndOptions;
+    }
+    format = outputFormatSane(format) as T;
+    options = options && typeof options === 'object' ? options : {};
     return outputFormatters[format](this.toRenderData(), options);
   }
 

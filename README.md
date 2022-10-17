@@ -6,14 +6,34 @@ Node.js Table builder for:
 - JSON
 - CSV, TSV
 - pre-rendered data for your custom outputs
-Borders, multiline cells, 
+
+## Supported features
+Depending on the output format:
+- borders
+- multiline cells
+- horizontal and vertical cell alignments
+- styles: color, bold, italic
+See details at [Configuration options](#Configuration%20options)
+
+## Install
+```bash
+npm install nd-table
+```
+
+### In your code
+```javascript
+import { Table } from 'nd-table';
+```
+
+Or, if you use `require()`:
+```javascript
+const Table = require('nd-table');
+```
 
 ## Usage
 ```javascript
-import { Table } from 'nd-table';
-
 const table = new Table('Column A', 'Column B'); // initialize table with optional column headers
-table.addRow('abc def\nghi jkl mno pqr', 1); // add a row
+table.addRowWithHead('First Row Head', 'abc def\nghi jkl mno pqr', 1); // add a row
 table.addRowWithHead('Row Head', 'stu', 2); // add a row with row header
 table.addRowWithHead('Another Row Head', { value: 'vwx', bold: true, color: 'red' }, 3); // Value is specified with options for "Column A"
 table.addRow('yz', { value: 4, link: 'https://osnews.com/' }); // Specifies a link for "Column B". Supported in Markdown and HTML outputs
@@ -21,7 +41,7 @@ console.log(table.toString()); // print the table
 //                    ┌──────────────────────────┐
 //                    │ Column A        Column B │
 // ┌──────────────────┼──────────────────────────┤
-// │                  │ abc def                1 │
+// │   First Row Head │ abc def                1 │
 // │                  │ ghi jkl mno pqr          │
 // │         Row Head │ stu                    2 │
 // │ Another Row Head │ vwx                    3 │
@@ -105,11 +125,36 @@ interface ConfigValue {
 }
 ```
 
+#### Preferences
+Preferences for defaults can be set on both the Table static (ex: `Table.preferences.boldHeaders = true`) or
+for the instance (ex: `const table = new Table(); table.preferences.verticalBorders = true`).
+
+##### Default preferences
+```javascript
+{
+  align: 'left',
+  boldHeaders: true,
+  columnHeaderAlign: 'left',
+  columnHeaderVAlign: 'bottom',
+  headerBorders: true,
+  horizontalBorders: false,
+  numberAlign: 'right',
+  rowHeaderAlign: 'right',
+  rowHeaderVAlign: 'top',
+  tableBorders: true,
+  valign: 'top',
+  verticalBorders: false
+}
+```
+
 ### Output API
 
-#### Output specific methods
+#### Output methods
 ```javascript
-table.toUTF8({ ansi: true, flavor: 'rounded' }); // For terminal, uses UTF-8 box drowing characters for borders
+// generic
+table.toString(format?, options?); // Output Table string with selected (or default) format and options. Also triggered by String(table)
+// or format-specific
+table.toUTF8({ ansi: true, flavor: 'rounded', separatorSpaces: 3 }); // For terminal, uses UTF-8 box drowing characters for borders
 table.toASCII({ ansi: true }); // For terminal with no UTF-8 support
 table.toMarkdown(); // Markdown
 table.toCSV(); // Excel compatbile CSV
@@ -118,9 +163,11 @@ table.toHTML({ styles: true }); // HTML <table>
 table.toJSON({ compact: true }); // JSON array of arrays
 ```
 
-#### Generic output API
+#### Default output format and options
+If nothing is set, default format is `utf8`
 ```javascript
-table.toString(format?, options?); // format defaults to utf8
+Table.setOutputFormat(format, options?); // Sets default output format and options for all Table instances that don't have their own default
+table.setOutputFormat(format, options?); // Sets default output format and options for the Table instance
 ```
 
 #### Custom builder output
@@ -130,6 +177,20 @@ myCustomOutput(table.toRenderData());
 ```
 The render data is a mash of the TableSnapshot and these additional interfaces:
 ```typescript
+interface TableSnapshot {
+  cellConfig: RenderConfig[][]; // copy of original cell config on (x, y) coordinates
+  cellValue: CellValue[][]; // copy of original cell values on (x, y) coordinates
+  columnConfig: ConfigValue[]; // copy of original column config on (x) coordinate
+  columnHeaders?: CellValue[]; // column header values (or undefined for no headers)
+  columns: number; // number of columns (excluding header)
+  rowConfig: ConfigValue[]; // copy of original row config on (y) coordinate
+  rowHeaders?: CellValue[]; // row header values (or undefined for no headers)
+  rows: number; // row count (excluding header)
+  startX: number; // -1 when row headers are present, 0 otherwise
+  startY: number; // -1 when column headers are present, 0 otherwise
+  tableConfig: ConfigValue; // copy of original table config
+}
+
 interface TableRenderData extends TableSnapshot {
   borders: TableRenderBorderData; // border information in a grid logic
   cellValueRendered: string[][] = []; // processed cell values on (x, y) coordinates
