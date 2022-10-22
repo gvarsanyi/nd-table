@@ -1,7 +1,6 @@
 import { Cell } from './cell/cell.class';
 import { Config } from './config/config.class';
-import { defaultPreferences } from './default-preferences.const';
-import { TablePreferences } from './table-preferences.type';
+import { PreferencesValue } from './config/preferences-value.type';
 import { TableRenderBorderData } from './table-render-border-data.class';
 import { TableSnapshot } from './table-snapshot.class';
 
@@ -30,7 +29,7 @@ export class TableRenderData extends TableSnapshot {
    * Instantiate render data
    * @param snapshot Table data snapshot
    */
-  constructor(snapshot: TableSnapshot, preferences: TablePreferences) {
+  constructor(snapshot: TableSnapshot, preferences: PreferencesValue) {
     super(snapshot);
     const {
       cellConfig, cellValue, cellValueRendered, cellValueRenderedMultiline, columnWidth, columns, rowHeight, rows, startX, startY
@@ -46,7 +45,7 @@ export class TableRenderData extends TableSnapshot {
           if (x >= 0 && y >= 0 && preferences.numberAlign && rendered.match(numberishRx)) {
             renderConfig.align = Config.sanitizeAlign(preferences.numberAlign);
           } else {
-            renderConfig.align = Config.sanitizeAlign(preferences.align, defaultPreferences.align);
+            renderConfig.align = Config.sanitizeAlign(preferences.align);
           }
         }
         const maxHeight = Math.min(renderConfig.maxHeight || 1000, renderConfig.height || 1000);

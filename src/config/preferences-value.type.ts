@@ -1,6 +1,6 @@
-import { Align, VAlign } from './config/config.class';
+import { Align, VAlign } from './config.class';
 
-export interface TablePreferences {
+export interface PreferencesValue {
   align: Align;
   boldHeaders: boolean;
   columnHeaderAlign: Align;

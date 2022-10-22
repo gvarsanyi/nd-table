@@ -1,5 +1,5 @@
 import { CellValue } from './cell/cell-value.type';
-import { defaultPreferences } from './default-preferences.const';
+import { PreferencesValue } from './config/preferences-value.type';
 import { outputFormatSane } from './output-formatter/output-format-sane';
 import { outputFormatterCSV } from './output-formatter/output-formatter-csv';
 import { outputFormatterHTML } from './output-formatter/output-formatter-html';
@@ -9,16 +9,32 @@ import { outputFormatterUTF8 } from './output-formatter/output-formatter-utf8';
 import { OutputFormat, OutputFormatters } from './output-formatter/output-formatter.type';
 import { outputFormatters } from './output-formatter/output-formatters.const';
 import { TableBuilder } from './table-builder.class';
-import { TablePreferences } from './table-preferences.type';
+import { TableConfig } from './table-config.class';
 import { TableRenderData } from './table-render-data.class';
 
 /**
  * Logical Table
  */
 export class Table extends TableBuilder {
-  static preferences: TablePreferences = Object.assign({}, defaultPreferences);
-
   protected static _outputFormat?: [OutputFormat, Parameters<OutputFormatters[OutputFormat]>[1]];
+
+  /**
+   * Get generic table preferences
+   * @returns preferences object
+   */
+  static getPreferences(): PreferencesValue {
+    return TableConfig._preferences.value;
+  }
+
+  /**
+   * Update generic table preferences
+   * @param preferences updates
+   * @returns this Table class
+   */
+  static setPreferences(preferences: PreferencesValue): typeof Table {
+    TableConfig._preferences.value = preferences;
+    return Table;
+  }
 
   /**
    * Sets default output format and options for all table instances that don't have their own defaults
@@ -121,7 +137,7 @@ export class Table extends TableBuilder {
    * @returns render data snapshot
    */
   toRenderData(): TableRenderData {
-    return new TableRenderData(this.getSnapshot(), this._cells.configs.preferences);
+    return new TableRenderData(this.getSnapshot(), this._cells.configs.preferences.value);
   }
 
   /**

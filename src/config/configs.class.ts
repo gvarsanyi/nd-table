@@ -1,13 +1,13 @@
 import { Cells } from '../cell/cells.class';
 import { Container2D } from '../container-2d.class';
-import { defaultPreferences } from '../default-preferences.const';
-import { TablePreferences } from '../table-preferences.type';
 import { Table } from '../table.class';
 import { ConfigValue } from './config-value.type';
 import { Config } from './config.class';
+import { IncomingConfigValue } from './incoming-config-value.type';
+import { Preferences } from './preferences.class';
 
 export class Configs extends Container2D<ConfigValue, Config, Configs> {
-  readonly preferences: TablePreferences = Object.assign(defaultPreferences, Table.preferences);
+  readonly preferences: Preferences;
 
   readonly table = new Config(this, undefined!, undefined!, {});
 
@@ -16,6 +16,7 @@ export class Configs extends Container2D<ConfigValue, Config, Configs> {
 
   constructor(readonly cells: Cells) {
     super(Config, () => ({}));
+    this.preferences = new Preferences(Table.getPreferences());
   }
 
   clear(): void {
@@ -56,11 +57,11 @@ export class Configs extends Container2D<ConfigValue, Config, Configs> {
     return this._rows[y] = (this._rows[y] || new Config(this, undefined!, y, {}));
   }
 
-  setColumn(x: number, config: ConfigValue): void {
+  setColumn(x: number, config: IncomingConfigValue): void {
     this.getColumn(x).value = config;
   }
 
-  setRow(y: number, config: ConfigValue): void {
+  setRow(y: number, config: IncomingConfigValue): void {
     this.getRow(y).value = config;
   }
 

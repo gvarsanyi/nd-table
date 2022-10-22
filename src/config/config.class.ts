@@ -1,12 +1,12 @@
-import { defaultPreferences } from '../default-preferences.const';
 import { ConfigValue } from './config-value.type';
 import { Configs } from './configs.class';
+import { IncomingConfigValue } from './incoming-config-value.type';
 import { RenderConfig } from './render-config.type';
 
-const CONFIG_ALIGN = ['center', 'left', 'right'] as const;
+export const CONFIG_ALIGN = ['center', 'left', 'right'] as const;
 const CONFIG_BORDERS = ['borderBottom', 'borderLeft', 'borderRight', 'borderTop'] as const;
 const CONFIG_COLORS = ['black', 'blue', 'cyan', 'default', 'green', 'magenta', 'red', 'white', 'yellow'] as const;
-const CONFIG_VALIGN = ['bottom', 'middle', 'top'] as const;
+export const CONFIG_VALIGN = ['bottom', 'middle', 'top'] as const;
 const CONFIG_SIZES = ['height', 'maxHeight', 'maxWidth', 'width'] as const;
 
 export type Align = (typeof CONFIG_ALIGN)[number]
@@ -58,26 +58,26 @@ export class Config {
 
   /** read and add defaults */
   get value(): ConfigValue {
-    const preferences = this.parent.preferences;
+    const preferences = this.parent.preferences.value;
     const defaults: ConfigValue = {};
     if (this.x == null && this.y == null) { // table
       defaults.borderTop = defaults.borderRight = defaults.borderLeft = defaults.borderBottom = !!preferences.tableBorders;
-      defaults.valign = Config.sanitizeVAlign(preferences.valign, defaultPreferences.valign);
+      defaults.valign = Config.sanitizeVAlign(preferences.valign);
     } else if (this.x == null) { // row
       if (this.y === -1) { // header
-        defaults.align = Config.sanitizeAlign(preferences.columnHeaderAlign, defaultPreferences.columnHeaderAlign);
+        defaults.align = Config.sanitizeAlign(preferences.columnHeaderAlign);
         defaults.bold = !!preferences.boldHeaders;
         defaults.borderBottom = !!preferences.headerBorders;
-        defaults.valign = Config.sanitizeVAlign(preferences.columnHeaderVAlign, defaultPreferences.columnHeaderVAlign);
+        defaults.valign = Config.sanitizeVAlign(preferences.columnHeaderVAlign);
       } else if (this.y > 0) {
         defaults.borderTop = !!preferences.horizontalBorders;
       }
     } else if (this.y == null) { // column
       if (this.x === -1) { // header
-        defaults.align = Config.sanitizeAlign(preferences.rowHeaderAlign, defaultPreferences.rowHeaderAlign);
+        defaults.align = Config.sanitizeAlign(preferences.rowHeaderAlign);
         defaults.bold = !!preferences.boldHeaders;
         defaults.borderRight = !!preferences.headerBorders;
-        defaults.valign = Config.sanitizeVAlign(preferences.rowHeaderVAlign, defaultPreferences.rowHeaderVAlign);
+        defaults.valign = Config.sanitizeVAlign(preferences.rowHeaderVAlign);
       } else if (this.x > 0) {
         defaults.borderLeft = !!preferences.verticalBorders;
       }
@@ -89,43 +89,51 @@ export class Config {
   }
 
   /** sanitze and update */
-  set value(options: ConfigValue) {
+  set value(config: IncomingConfigValue) {
     const sane: ConfigValue = {};
-    if (options && typeof options === 'object') {
-      if ('align' in options) {
-        const align = options.align;
+    if (config && typeof config === 'object') {
+      if ('align' in config) {
+        const align = config.align;
         sane.align = CONFIG_ALIGN.includes(align!) ? align : undefined;
       }
-      if ('valign' in options) {
-        const valign = options.valign;
+      if ('valign' in config) {
+        const valign = config.valign;
         sane.valign = CONFIG_VALIGN.includes(valign!) ? valign : undefined;
       }
-      if ('color' in options) {
-        const color = options.color;
+      if ('color' in config) {
+        const color = config.color;
         sane.color = CONFIG_COLORS.includes(color!) ? color : undefined;
       }
-      if ('bold' in options) {
-        sane.bold = !!options.bold;
+      if ('link' in config) {
+        sane.link = typeof config.link === 'string' && config.link.trim() || undefined;
       }
-      if ('italic' in options) {
-        sane.italic = !!options.italic;
+      for (const booleanKey of ['bold', ...CONFIG_BORDERS, 'italic'] as const) {
+        if (booleanKey in config) {
+          sane[booleanKey] = config[booleanKey] == null ? undefined : !!config[booleanKey];
+        }
       }
-      if ('link' in options) {
-        sane.link = typeof options.link === 'string' && options.link.trim() || undefined;
-      }
-      for (const key of CONFIG_BORDERS) {
-        if (key in options) {
-          sane[key] = !!options[key];
+      const shorthands: { [shorthand in keyof IncomingConfigValue]: BorderProperty[] } = {
+        border: ['borderTop', 'borderRight', 'borderBottom', 'borderLeft'],
+        horizontalBorder: ['borderTop', 'borderBottom'],
+        verticalBorder: ['borderRight', 'borderLeft']
+      };
+      for (const [shorthand, keys] of Object.entries(shorthands) as [keyof IncomingConfigValue, BorderProperty[]][]) {
+        if (shorthand in config) {
+          for (const key of keys) {
+            if (!(key in sane)) {
+              sane[key] = config[shorthand] == null ? undefined : !!config[shorthand];
+            }
+          }
         }
       }
       for (const key of CONFIG_SIZES) {
-        if (key in options) {
-          const nval = Math.round(+options[key]!);
+        if (key in config) {
+          const nval = Math.round(+config[key]!);
           sane[key] = nval > 0 ? nval : undefined;
         }
       }
-      if ('renderer' in options) {
-        const fn = options.renderer;
+      if ('renderer' in config) {
+        const fn = config.renderer;
         sane.renderer = typeof fn === 'function' ? fn : undefined;
       }
     }

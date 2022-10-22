@@ -11,7 +11,7 @@ const table = new Table('Welcome', 'To', 'The Table!')
         { value: 'alignment', align: 'right' })
     .addRowWithHead('vertical',
         'auto-aligns numbers',
-        { value: 'has borders', borderTop: true, borderRight: true, borderLeft: true, borderBottom: true },
+        { value: 'has borders', border: true },
         { value: 'HTML/MD links', link: 'https://github.com/gvarsanyi/nd-table' })
     .addRowWithHead('headers',
         1234,

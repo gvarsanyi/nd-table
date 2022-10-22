@@ -27,7 +27,7 @@ import { Table } from 'nd-table';
 
 Or, if you use `require()`:
 ```javascript
-const Table = require('nd-table');
+const Table = require('nd-table').Table;
 ```
 
 ## Usage
@@ -103,6 +103,9 @@ setColumnConfig(x, config); // Update column config
 setRowConfig(y, config); // Update row config
 setTableConfig(config); // Update table config
 ```
+For setters (`setCellConfig`, `setColumnConfig`, `setRowConfig`) you may pass coordinate(s) for `x` and `y`:
+- an integer
+- string pattern that is a comma-separated list of indexes and/or ranges: '0..2,5' (from..to, to included)
 
 #### Configuration options
 ```typescript
@@ -123,11 +126,19 @@ interface ConfigValue {
   valign?: (typeof CONFIG_VALIGN)[number]; // vertical alignment of multiline cell content
   width?: number; // fixed cell content width (in character count)
 }
+
+// When setting configuration, you may use shorthands for border* properties:
+interface IncomingConfigValue extends ConfigValue {
+  border?: boolean; // top + right + bottom + left
+  horizontalBorder?: boolean; // top + bottom
+  verticalBorder?: boolean; // right + left
+}
 ```
 
 #### Preferences
-Preferences for defaults can be set on both the Table static (ex: `Table.preferences.boldHeaders = true`) or
-for the instance (ex: `const table = new Table(); table.preferences.verticalBorders = true`).
+Preferences for defaults can be set on both the Table static (ex: `Table.setPreferences({ boldHeaders: true })`) or
+for the instance (ex: `const table = (new Table()).setPreferences({ verticalBorders: true })`).
+You can check the current values by getting a copy of the preferences: `table.getPreferences()`
 
 ##### Default preferences
 ```javascript

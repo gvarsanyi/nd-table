@@ -1,14 +1,18 @@
 import { Cells } from './cell/cells.class';
+import { configMulticoord } from './config/config-multicoord';
 import { ConfigValue } from './config/config-value.type';
+import { IncomingConfigValue } from './config/incoming-config-value.type';
+import { PreferencesValue } from './config/preferences-value.type';
+import { Preferences } from './config/preferences.class';
 import { RenderConfig } from './config/render-config.type';
 
 /**
  * Table Config API
  */
 export class TableConfig {
-  protected readonly _cells = new Cells();
+  protected static readonly _preferences = new Preferences();
 
-  readonly preferences = this._cells.configs.preferences;
+  protected readonly _cells = new Cells();
 
   /**
    * Create TableConfig instance
@@ -47,6 +51,14 @@ export class TableConfig {
   }
 
   /**
+   * Get generic table preferences
+   * @returns preferences object
+   */
+  getPreferences(): PreferencesValue {
+    return this._cells.configs.preferences.value;
+  }
+
+  /**
    * Get row config
    * @param y 0 based coordinate index (-1 for column header)
    * @returns row config
@@ -65,35 +77,57 @@ export class TableConfig {
 
   /**
    * Update cell config
-   * @param x 0-based coordinate index (-1 for row header)
-   * @param y 0 based coordinate index (-1 for column header)
+   * @param x 0-based coordinate index (-1 for row header) or pattern like: '0..2,5' (from..to, to included)
+   * @param y 0 based coordinate index (-1 for column header) or pattern like: '0..2,5' (from..to, to included)
    * @param config updates
    * @returns this Table
    */
-  setCellConfig(x: number, y: number, config: ConfigValue): this {
-    this._cells.configs.upsert(x, y, config);
+  setCellConfig(x: number | string, y: number | string, config: IncomingConfigValue): this {
+    const xs = configMulticoord(x);
+    const ys = configMulticoord(y);
+    for (const _x of xs) {
+      for (const _y of ys) {
+        this._cells.configs.upsert(_x, _y, config);
+      }
+    }
     return this;
   }
 
   /**
    * Update column config
-   * @param x 0-based coordinate index (-1 for row header)
+   * @param x 0-based coordinate index (-1 for row header) or pattern like: '0..2,5' (from..to, to included)
    * @param config updates
    * @returns this Table
    */
-  setColumnConfig(x: number, config: ConfigValue): this {
-    this._cells.configs.setColumn(x, config);
+  setColumnConfig(x: number | string, config: IncomingConfigValue): this {
+    const xs = configMulticoord(x);
+    for (const _x of xs) {
+      this._cells.configs.setColumn(_x, config);
+    }
+    return this;
+  }
+
+  /**
+   * Update generic table preferences
+   * @param preferences updates
+   * @returns this Table
+   */
+  setPreferences(preferences: Partial<PreferencesValue>): this {
+    this._cells.configs.preferences.value = preferences;
     return this;
   }
 
   /**
    * Update row config
-   * @param y 0 based coordinate index (-1 for column header)
+   * @param y 0 based coordinate index (-1 for column header) or pattern like: '0..2,5' (from..to, to included)
    * @param config updates
    * @returns this Table
    */
-  setRowConfig(y: number, config: ConfigValue): this {
-    this._cells.configs.setRow(y, config);
+  setRowConfig(y: number | string, config: IncomingConfigValue): this {
+    const ys = configMulticoord(y);
+    for (const _y of ys) {
+      this._cells.configs.setRow(_y, config);
+    }
     return this;
   }
 
@@ -102,7 +136,7 @@ export class TableConfig {
    * @param config updates
    * @returns this Table
    */
-  setTableConfig(config: ConfigValue): this {
+  setTableConfig(config: IncomingConfigValue): this {
     this._cells.configs.table.value = config;
     return this;
   }
