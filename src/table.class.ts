@@ -31,7 +31,7 @@ export class Table extends TableBuilder {
    * @param preferences updates
    * @returns this Table class
    */
-  static setPreferences(preferences: PreferencesValue): typeof Table {
+  static setPreferences(preferences: Partial<PreferencesValue>): typeof Table {
     TableConfig._preferences.value = preferences;
     return Table;
   }
